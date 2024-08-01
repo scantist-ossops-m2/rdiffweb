@@ -107,6 +107,19 @@ Professional support for Rdiffweb is available by contacting [IKUS Soft](https:/
 
 # Changelog
 
+## 2.4.10 (2022-10-03)
+
+This releases include a security fix. If you are using an earlier version, you should upgrade to this release immediately.
+
+* Mitigate path traversal vulnerability [CVE-2022-3389](https://nvd.nist.gov/vuln/detail/CVE-2022-3389)
+
+## 2.4.9 (2022-09-28)
+
+This releases include a security fix. If you are using an earlier version, you should upgrade to this release immediately.
+
+* Add `Cache-Control` and other security headers [CVE-2022-3292](https://nvd.nist.gov/vuln/detail/CVE-2022-3292)
+* Enforce password policy using `password-score` based on [zxcvbn](https://github.com/dropbox/zxcvbn) [CVE-2022-3326](https://nvd.nist.gov/vuln/detail/CVE-2022-3326)
+
 ## 2.4.8 (2022-09-26)
 
 This releases include a security fix. If you are using an earlier version, you should upgrade to this release immediately.
