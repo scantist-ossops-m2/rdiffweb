@@ -38,7 +38,14 @@ PATTERN_EMAIL = re.compile(r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')
 
 
 class UserProfileForm(CherryForm):
-    email = EmailField(_('Email'), validators=[DataRequired(), Regexp(PATTERN_EMAIL, message=_("Invalid email."))])
+    email = EmailField(
+        _('Email'),
+        validators=[
+            DataRequired(),
+            Length(max=256, message=_("Invalid email.")),
+            Regexp(PATTERN_EMAIL, message=_("Invalid email.")),
+        ],
+    )
 
 
 class UserPasswordForm(CherryForm):
@@ -53,18 +60,6 @@ class UserPasswordForm(CherryForm):
     confirm = PasswordField(
         _('Confirm new password'), validators=[InputRequired(_("Confirmation password is missing."))]
     )
-
-    def validate_new(self, field):
-        validator = Length(
-            min=self.app.cfg.password_min_length,
-            max=self.app.cfg.password_max_length,
-            message=_('Password must have between %(min)d and %(max)d characters.'),
-        )
-        validator(self, field)
-
-    @property
-    def app(self):
-        return cherrypy.request.app
 
 
 class PrefsGeneralPanelProvider(Controller):
@@ -116,18 +111,19 @@ class PrefsGeneralPanelProvider(Controller):
         # Process the parameters.
         profile_form = UserProfileForm(email=self.app.currentuser.email)
         password_form = UserPasswordForm()
-        if action == "set_profile_info":
-            self._handle_set_profile_info(action, profile_form)
-        elif action == "set_password":
-            self._handle_set_password(action, password_form)
-        elif action == "update_repos":
-            self.app.currentuser.refresh_repos(delete=True)
-            flash(_("Repositories successfully updated"), level='success')
-        elif action is None:
-            pass
-        else:
-            _logger.warning("unknown action: %s", action)
-            raise cherrypy.NotFound("Unknown action")
+        if cherrypy.request.method == 'POST':
+            if action == "set_profile_info":
+                self._handle_set_profile_info(action, profile_form)
+            elif action == "set_password":
+                self._handle_set_password(action, password_form)
+            elif action == "update_repos":
+                self.app.currentuser.refresh_repos(delete=True)
+                flash(_("Repositories successfully updated"), level='success')
+            elif action is None:
+                pass
+            else:
+                _logger.warning("unknown action: %s", action)
+                raise cherrypy.NotFound("Unknown action")
         params = {
             'profile_form': profile_form,
             'password_form': password_form,
