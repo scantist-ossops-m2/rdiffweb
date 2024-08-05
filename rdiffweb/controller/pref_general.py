@@ -38,7 +38,14 @@ PATTERN_EMAIL = re.compile(r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')
 
 
 class UserProfileForm(CherryForm):
-    email = EmailField(_('Email'), validators=[DataRequired(), Regexp(PATTERN_EMAIL, message=_("Invalid email."))])
+    email = EmailField(
+        _('Email'),
+        validators=[
+            DataRequired(),
+            Length(max=256, message=_("Invalid email.")),
+            Regexp(PATTERN_EMAIL, message=_("Invalid email.")),
+        ],
+    )
 
 
 class UserPasswordForm(CherryForm):
@@ -53,18 +60,6 @@ class UserPasswordForm(CherryForm):
     confirm = PasswordField(
         _('Confirm new password'), validators=[InputRequired(_("Confirmation password is missing."))]
     )
-
-    def validate_new(self, field):
-        validator = Length(
-            min=self.app.cfg.password_min_length,
-            max=self.app.cfg.password_max_length,
-            message=_('Password must have between %(min)d and %(max)d characters.'),
-        )
-        validator(self, field)
-
-    @property
-    def app(self):
-        return cherrypy.request.app
 
 
 class PrefsGeneralPanelProvider(Controller):

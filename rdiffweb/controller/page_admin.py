@@ -41,6 +41,9 @@ from rdiffweb.tools.i18n import ugettext as _
 # Define the logger
 logger = logging.getLogger(__name__)
 
+# Maximum file path
+MAX_PATH = 260
+
 
 def get_pyinfo():
     try:
@@ -166,11 +169,27 @@ class SizeField(Field):
 
 class UserForm(CherryForm):
     userid = StringField(_('UserID'))
-    username = StringField(_('Username'), validators=[validators.data_required()])
-    email = EmailField(_('Email'), validators=[validators.optional()])
+    username = StringField(
+        _('Username'),
+        validators=[
+            validators.data_required(),
+            validators.length(max=256, message=_('Username too long.')),
+        ],
+    )
+    email = EmailField(
+        _('Email'),
+        validators=[
+            validators.optional(),
+            validators.length(max=256, message=_('Email too long.')),
+        ],
+    )
     password = PasswordField(_('Password'), validators=[validators.optional()])
     user_root = StringField(
-        _('Root directory'), description=_("Absolute path defining the location of the repositories for this user.")
+        _('Root directory'),
+        description=_("Absolute path defining the location of the repositories for this user."),
+        validators=[
+            validators.length(max=MAX_PATH, message=_('Root directory too long.')),
+        ],
     )
     role = SelectField(
         _('User Role'),
@@ -189,18 +208,6 @@ class UserForm(CherryForm):
     disk_usage = SizeField(
         _('Quota Used'), validators=[validators.optional()], description=_("Disk spaces (in bytes) used by this user.")
     )
-
-    def validate_password(self, field):
-        validator = validators.length(
-            min=self.app.cfg.password_min_length,
-            max=self.app.cfg.password_max_length,
-            message=_('Password must have between %(min)d and %(max)d characters.'),
-        )
-        validator(self, field)
-
-    @property
-    def app(self):
-        return cherrypy.request.app
 
     def validate_role(self, field):
         # Don't allow the user to changes it's "role" state.
